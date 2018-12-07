@@ -5,6 +5,30 @@ STRINGS_SHORT_FILE = "strings-shrt.bib"
 
 # Usage: prepo.rb <pdffile>
 
+def output_conference(paper_meta)
+    year_short = paper_meta.year.split(//).last(2).join
+    if paper_meta.pages != ""
+        %{
+@inproceedings{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+  author = {#{paper_meta.author}},
+  title = {#{paper_meta.title}},
+  booktitle = #{paper_meta.venue},
+  year = {#{paper_meta.year}},
+  pages = {#{paper_meta.pages}}
+} 
+        }
+    else
+        %{
+@inproceedings{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+  author = {#{paper_meta.author}},
+  title = {#{paper_meta.title}},
+  booktitle = #{paper_meta.venue},
+  year = {#{paper_meta.year}}
+} 
+        }
+    end
+end
+
 def get_strings_short(filename)
     short_strings = []
     File.readlines(filename).each do |line|
@@ -61,17 +85,36 @@ def format_author(authors)
     newstring
 end
 
+def format_author_short_string(authors)
+    # input author string might look like:
+    # Rodger Benham, Luke Gallagher, Joel Mackenzie, Binsheng Liu, Xiaolu Lu, Falk Scholer, Alistair Moffat, and J. Shane Culpepper
+    # output author string might look like:
+    # bgmllsmc
+    
+    s = authors.split(/, [and ]*/)
+    newstring = ""
+
+    s.each do |author|
+        s2 = author.split(" ")
+        newstring += s2.last[0].downcase
+    end
+
+    newstring
+end
+
+
 def get_meta(filename)
-    `pdfinfo #{filename} > meta`
+    `pdfinfo #{filename} &> meta`
     meta = OpenStruct.new
     File.readlines("meta").each do |line|
         s = line.split(/[ ]{2,}/)
         key = s[0]
         value = s[1]
         if key == "Title:"
-            meta.title = value
+            meta.title = value.strip
         elsif key == "Author:"
             meta.author = format_author(value)
+            meta.author_short = format_author_short_string(value)
         end
     end
     meta
@@ -89,10 +132,32 @@ Readline.completion_append_character = " "
 Readline.completion_proc = comp
 
 valid = false
+venue = ""
 while !valid
     venue = Readline.readline('> ', true)
     venue.strip!
     valid = (strings_short.include?(venue))
+end
+
+puts "Which year was this paper published?"
+valid = false
+year = ""
+while !valid
+    year = Readline.readline('> ', true)
+    year.strip!
+    valid = (year[/[0-9]+/] == year)
+end
+
+puts "What are the page numbers? (Example format: 993--1002, enter nothing to skip)"
+valid = false
+pages = ""
+while !valid
+    pages = Readline.readline('> ', true)
+    pages.strip!
+    # Skip validation on this, sometimes this is used in place of
+    # numpages? Regardless, people should check the warnings on 
+    # when making the bibtex
+    valid = true
 end
 
 valid = false
@@ -104,6 +169,12 @@ while !valid
     valid = (ptype == "j" || ptype == "c")
 end
 
-get_meta(filename)
+puts "Parsing paper metadata..."
+paper_meta = get_meta(filename)
+paper_meta.venue = venue
+paper_meta.year = year
+paper_meta.pages = pages
 
-
+if ptype == "c"
+    puts output_conference(paper_meta)    
+end

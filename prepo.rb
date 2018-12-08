@@ -29,6 +29,35 @@ def output_conference(paper_meta)
     end
 end
 
+def output_journal(paper_meta)
+    year_short = paper_meta.year.split(//).last(2).join
+    if paper_meta.pages != ""
+        %{
+@article{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+  author = {#{paper_meta.author}},
+  title = {#{paper_meta.title}},
+  journal = #{paper_meta.venue},
+  year = {#{paper_meta.year}},
+  pages = {#{paper_meta.pages}},
+  volume = {#{paper_meta.volume}},
+  number = {#{paper_meta.number}}
+} 
+        }
+    else
+        %{
+@article{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+  author = {#{paper_meta.author}},
+  title = {#{paper_meta.title}},
+  journal = #{paper_meta.venue},
+  year = {#{paper_meta.year}},
+  volume = {#{paper_meta.volume}},
+  number = {#{paper_meta.number}}
+} 
+        }
+    end
+end
+
+
 def get_strings_short(filename)
     short_strings = []
     File.readlines(filename).each do |line|
@@ -177,4 +206,27 @@ paper_meta.pages = pages
 
 if ptype == "c"
     puts output_conference(paper_meta)    
+else
+    valid = false
+    volume = ""
+    while !valid
+        puts "What is the volume?"
+        volume = Readline.readline('> ', true)
+        volume.strip!
+        valid = true
+    end
+
+    valid = false
+    number = ""
+    while !valid
+        puts "What is the article number?"
+        number = Readline.readline('> ', true)
+        number.strip!
+        valid = true
+    end
+
+    paper_meta.volume = volume
+    paper_meta.number = number
+
+    puts output_journal(paper_meta)
 end

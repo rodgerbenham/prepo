@@ -1,0 +1,58 @@
+\documentclass{article}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\usepackage{graphicx}
+\usepackage{amssymb}
+
+\begin{document}
+\title{foo-bar-article-title}
+
+\author{Mr.~Rodger Benham\\
+School of Science\\
+RMIT University\\
+Email: rodger.benham@rmit.edu.au
+}
+
+\maketitle
+
+% Paragraph about the paper here.
+% Summary of the main ideas, positions, findings and overall effectiveness.
+% Could be used to dump in a pub.
+\begin{abstract}
+\citet{foo-bar-pcode} is the paper.
+\end{abstract}
+
+% Sentence notes about the paper. This can be dumped directly into a publication, keep logs
+% on these transactions to avoid self-plagurising.
+\section{Sentences}
+
+\citet{foo-bar-pcode} showed that the blah compression codec could outperform DMX compression.
+\citet{foo-bar-pcode} describe a novel blah compression codec approach which outperforms DMX compression in efficiecy with a similar compression ratio.
+
+%\section{Diagram}
+%\begin{figure}[h]
+%  \centering
+%  \includegraphics[scale=0.5]{images/diagram.pdf}
+%  \caption{Diagram}
+%  \label{fig:diagram}
+%\end{figure}
+
+% Use this section to list nit picky flaws in the paper that the authors might not have been 
+% able to see at the time. Mainly to protect your own conclusions.
+\section{Private Critique}
+
+\section{Thesis}
+
+\subsection{Related Work}
+
+\subsection{Design}
+
+\subsection{Evaluation}
+
+\subsection{Conclusion}
+
+\nocite{*} % Include everything in the .bib file.
+
+\bibliography{p}
+
+\end{document}

@@ -5,11 +5,15 @@ STRINGS_SHORT_FILE = "strings-shrt.bib"
 
 # Usage: prepo.rb <pdffile>
 
-def output_conference(paper_meta)
+def paper_code(paper_meta)
     year_short = paper_meta.year.split(//).last(2).join
+    "#{paper_meta.author_short}#{year_short}-#{paper_meta.venue}"
+end
+
+def output_conference(paper_meta)
     if paper_meta.pages != ""
         %{
-@inproceedings{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+@inproceedings{#{paper_code(paper_meta)},
   author = {#{paper_meta.author}},
   title = {#{paper_meta.title}},
   booktitle = #{paper_meta.venue},
@@ -19,7 +23,7 @@ def output_conference(paper_meta)
         }
     else
         %{
-@inproceedings{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+@inproceedings{#{paper_code(paper_meta)},
   author = {#{paper_meta.author}},
   title = {#{paper_meta.title}},
   booktitle = #{paper_meta.venue},
@@ -30,10 +34,9 @@ def output_conference(paper_meta)
 end
 
 def output_journal(paper_meta)
-    year_short = paper_meta.year.split(//).last(2).join
     if paper_meta.pages != ""
         %{
-@article{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+@article{#{paper_code(paper_meta)},
   author = {#{paper_meta.author}},
   title = {#{paper_meta.title}},
   journal = #{paper_meta.venue},
@@ -45,7 +48,7 @@ def output_journal(paper_meta)
         }
     else
         %{
-@article{#{paper_meta.author_short}#{year_short}-#{paper_meta.venue},
+@article{#{paper_code(paper_meta)},
   author = {#{paper_meta.author}},
   title = {#{paper_meta.title}},
   journal = #{paper_meta.venue},
@@ -204,8 +207,10 @@ paper_meta.venue = venue
 paper_meta.year = year
 paper_meta.pages = pages
 
+gen_bibtex = ""
+
 if ptype == "c"
-    puts output_conference(paper_meta)    
+    gen_bibtex = output_conference(paper_meta)    
 else
     valid = false
     volume = ""
@@ -228,5 +233,15 @@ else
     paper_meta.volume = volume
     paper_meta.number = number
 
-    puts output_journal(paper_meta)
+    gen_bibtex = output_journal(paper_meta)
 end
+
+# copy the contents of paper-template into new folder
+`mkdir -p papers`
+`cp -R paper-template papers/#{paper_code(paper_meta)}`
+
+# overwrite the bib with the generated bib
+File.open("papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
+
+`sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' papers/#{paper_code(paper_meta)}/p.tex`
+`sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' papers/#{paper_code(paper_meta)}/p.tex`

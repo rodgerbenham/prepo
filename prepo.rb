@@ -4,6 +4,8 @@ require 'readline'
 # don't invoke directly, use bin/prepo.sh
 
 filename = ARGV[0]
+draft_name = ARGV[1]
+
 prepo_root = ENV["PREPO_ROOT"]
 STRINGS_SHORT_FILE = "#{prepo_root}/strings-shrt.bib"
 
@@ -156,108 +158,122 @@ def get_meta(filename)
     meta
 end
 
+if filename != "draft"
 
-strings_short = get_strings_short(STRINGS_SHORT_FILE)
+    strings_short = get_strings_short(STRINGS_SHORT_FILE)
 
-puts "Which venue code do you want to use for this? (from \"#{STRINGS_SHORT_FILE}\")"
+    puts "Which venue code do you want to use for this? (from \"#{STRINGS_SHORT_FILE}\")"
 
-comp = proc { |s| strings_short.grep(/^#{Regexp.escape(s)}/) }
+    comp = proc { |s| strings_short.grep(/^#{Regexp.escape(s)}/) }
 
-Readline.completion_append_character = " "
-Readline.completion_proc = comp
+    Readline.completion_append_character = " "
+    Readline.completion_proc = comp
 
-valid = false
-venue = ""
-while !valid
-    venue = Readline.readline('> ', true)
-    venue.strip!
-    valid = (strings_short.include?(venue))
-end
+    valid = false
+    venue = ""
+    while !valid
+        venue = Readline.readline('> ', true)
+        venue.strip!
+        valid = (strings_short.include?(venue))
+    end
 
-puts "Which year was this paper published?"
-valid = false
-year = ""
-while !valid
-    year = Readline.readline('> ', true)
-    year.strip!
-    valid = (year[/[0-9]+/] == year)
-end
+    puts "Which year was this paper published?"
+    valid = false
+    year = ""
+    while !valid
+        year = Readline.readline('> ', true)
+        year.strip!
+        valid = (year[/[0-9]+/] == year)
+    end
 
-puts "What are the page numbers? (Example format: 993--1002, enter nothing to skip)"
-valid = false
-pages = ""
-while !valid
-    pages = Readline.readline('> ', true)
-    pages.strip!
-    # Skip validation on this, sometimes this is used in place of
-    # numpages? Regardless, people should check the warnings on 
-    # when making the bibtex
-    valid = true
-end
+    puts "What are the page numbers? (Example format: 993--1002, enter nothing to skip)"
+    valid = false
+    pages = ""
+    while !valid
+        pages = Readline.readline('> ', true)
+        pages.strip!
+        # Skip validation on this, sometimes this is used in place of
+        # numpages? Regardless, people should check the warnings on 
+        # when making the bibtex
+        valid = true
+    end
 
-valid = false
-ptype = ""
-while !valid
-    puts "Is this a (c)onference or (j)ournal paper? (j/c)"
-    ptype = Readline.readline('> ', true)
-    ptype.strip!
-    valid = (ptype == "j" || ptype == "c")
-end
+    valid = false
+    ptype = ""
+    while !valid
+        puts "Is this a (c)onference or (j)ournal paper? (j/c)"
+        ptype = Readline.readline('> ', true)
+        ptype.strip!
+        valid = (ptype == "j" || ptype == "c")
+    end
 
-puts "Parsing paper metadata..."
-paper_meta = get_meta(filename)
-paper_meta.venue = venue
-paper_meta.year = year
-paper_meta.pages = pages
+    puts "Parsing paper metadata..."
+    paper_meta = get_meta(filename)
+    paper_meta.venue = venue
+    paper_meta.year = year
+    paper_meta.pages = pages
 
-gen_bibtex = ""
+    gen_bibtex = ""
 
-if ptype == "c"
-    gen_bibtex = output_conference(paper_meta)    
+    if ptype == "c"
+        gen_bibtex = output_conference(paper_meta)    
+    else
+        valid = false
+        volume = ""
+        while !valid
+            puts "What is the volume?"
+            volume = Readline.readline('> ', true)
+            volume.strip!
+            valid = true
+        end
+
+        valid = false
+        number = ""
+        while !valid
+            puts "What is the article number?"
+            number = Readline.readline('> ', true)
+            number.strip!
+            valid = true
+        end
+
+        paper_meta.volume = volume
+        paper_meta.number = number
+
+        gen_bibtex = output_journal(paper_meta)
+    end
+
+    # copy the contents of paper-template into new folder
+    `mkdir -p #{prepo_root}/papers`
+
+    if File.directory?("#{prepo_root}/papers/#{paper_code(paper_meta)}")
+        raise "Directory already exists for #{paper_code(paper_meta)}, exiting" 
+    end
+
+    `cp -R #{prepo_root}/paper-template #{prepo_root}/papers/#{paper_code(paper_meta)}`
+
+    # overwrite the bib with the generated bib
+    File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
+
+    # second one so that concise bibs can be generated when needed
+    File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/this.bib", 'w') { |file| file.write(gen_bibtex) }
+
+    `sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
+    `sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
+
+    `cp #{filename} #{prepo_root}/papers/#{paper_code(paper_meta)}/original.pdf`
+    `mv meta #{prepo_root}/papers/#{paper_code(paper_meta)}/meta`
+
+    puts "Generated #{prepo_root}/papers/#{paper_code(paper_meta)} successfully"
+
 else
-    valid = false
-    volume = ""
-    while !valid
-        puts "What is the volume?"
-        volume = Readline.readline('> ', true)
-        volume.strip!
-        valid = true
+    # copy the contents of paper-template into new folder
+    `mkdir -p #{prepo_root}/papers`
+
+    if File.directory?("#{prepo_root}/papers/#{draft_name}-draft")
+        raise "Directory already exists for #{draft_name}-draft, exiting" 
     end
 
-    valid = false
-    number = ""
-    while !valid
-        puts "What is the article number?"
-        number = Readline.readline('> ', true)
-        number.strip!
-        valid = true
-    end
+    `cp -R #{prepo_root}/paper-template #{prepo_root}/papers/#{draft_name}-draft`
 
-    paper_meta.volume = volume
-    paper_meta.number = number
-
-    gen_bibtex = output_journal(paper_meta)
+    puts "Generated #{prepo_root}/papers/#{draft_name}-draft successfully"
 end
-
-# copy the contents of paper-template into new folder
-`mkdir -p #{prepo_root}/papers`
-
-if File.directory?("#{prepo_root}/papers/#{paper_code(paper_meta)}")
-    raise "Directory already exists for #{paper_code(paper_meta)}, exiting" 
-end
-
-`cp -R #{prepo_root}/paper-template #{prepo_root}/papers/#{paper_code(paper_meta)}`
-
-# overwrite the bib with the generated bib
-File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
-
-# second one so that concise bibs can be generated when needed
-File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/this.bib", 'w') { |file| file.write(gen_bibtex) }
-
-`sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
-`sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
-
-`cp #{filename} #{prepo_root}/papers/#{paper_code(paper_meta)}/original.pdf`
-`mv meta #{prepo_root}/papers/#{paper_code(paper_meta)}/meta`
-
-puts "Generated #{prepo_root}/papers/#{paper_code(paper_meta)} successfully"

@@ -13,6 +13,11 @@ https://www.xpdfreader.com/download.html
 Run `bundle install` to install the ruby dependencies.
 If you don't have bundler installed, `gem install bundler` and try again.
 
+If you are running mac, you may need to recompile ruby with the
+readline library.
+If you're using rbenv and homebrew run:
+`RUBY_CONFIGURE_OPTS=--with-readline-dir=`brew --prefix readline` rbenv install 2.3.1`
+
 Now add to your bashrc or zshrc where you would like your prepo repo stored:
 ```
 export PREPO_ROOT="$HOME/prepo"

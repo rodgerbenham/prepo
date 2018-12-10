@@ -42,6 +42,16 @@ Parsing paper metadata...
 Generated XXX/papers/bgmllsmc18-trec successfully
 ```
 
+The generated bibtex in `this.bib` now looks like:
+```
+@inproceedings{bgmllsmc18-trec,
+  author = {R. Benham and L. Gallagher and J. Mackenzie and B. Liu and X. Lu and F. Scholer and A. Moffat and J. S. Culpepper},
+  title = {RMIT at the 2018 TREC CORE Track},
+  booktitle = trec,
+  year = {2018}
+}
+```
+
 ## Searching Existing Papers
 
 An exhaustive search through the repo using grep can search all of the metadata 
@@ -59,6 +69,9 @@ Change directory into the paper in the repo (e.g. `XXX/papers/bgmllsmc18-trec`) 
 run `prepo_bib_gen.rb`. All `citet` and `cite` references in p.tex with codes matching
 the folder names in the parent directory will be parsed and the output will form a 
 bib file containing only the entries you reference.
+
+This is intended to overwrite `p.bib` in the current directory, but I don't want to
+be destructive here. Do so with care.
 
 Note that this only supports entries you have stored in prepo and ignores anything else.
 For physical assets that do not have a digital PDF resource, form a `this.bib` file

@@ -5,8 +5,9 @@ on recommendations made by Alistair Moffat.
 
 # Install
 
-Requires pdfinfo to export the pdf details. Version 0.26.5 has been tested.
-Download and install from here:
+Requires pdfinfo to export the pdf details. 
+Your system might have it already installed. Version 0.26.5 has been tested.
+Download and install from here otherwise:
 https://www.xpdfreader.com/download.html
 
 Run `bundle install` to install the ruby dependencies.

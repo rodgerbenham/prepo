@@ -3,6 +3,9 @@ require 'readline'
 
 STRINGS_SHORT_FILE = "strings-shrt.bib"
 
+filename = ARGV[0]
+prepo_root = ENV["PREPO_ROOT"]
+
 # Usage: prepo.rb <pdffile>
 
 def paper_code(paper_meta)
@@ -152,7 +155,6 @@ def get_meta(filename)
     meta
 end
 
-filename = ARGV[0]
 
 strings_short = get_strings_short(STRINGS_SHORT_FILE)
 
@@ -237,11 +239,19 @@ else
 end
 
 # copy the contents of paper-template into new folder
-`mkdir -p papers`
-`cp -R paper-template papers/#{paper_code(paper_meta)}`
+`mkdir -p #{prepo_root}/papers`
+
+if File.directory?("#{prepo_root}/papers/#{paper_code(paper_meta)}")
+    raise "Directory already exists for #{paper_code(paper_meta)}, exiting" 
+end
+
+`cp -R paper-template #{prepo_root}/papers/#{paper_code(paper_meta)}`
 
 # overwrite the bib with the generated bib
-File.open("papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
+File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
 
-`sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' papers/#{paper_code(paper_meta)}/p.tex`
-`sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' papers/#{paper_code(paper_meta)}/p.tex`
+`sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
+`sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
+
+`cp #{filename} #{prepo_root}/papers/#{paper_code(paper_meta)}/original.pdf`
+`mv meta #{prepo_root}/papers/#{paper_code(paper_meta)}/meta`

@@ -1,10 +1,11 @@
 require 'ostruct'
 require 'readline'
 
-STRINGS_SHORT_FILE = "strings-shrt.bib"
+# don't invoke directly, use bin/prepo.sh
 
 filename = ARGV[0]
 prepo_root = ENV["PREPO_ROOT"]
+STRINGS_SHORT_FILE = "#{prepo_root}/strings-shrt.bib"
 
 # Usage: prepo.rb <pdffile>
 
@@ -245,13 +246,18 @@ if File.directory?("#{prepo_root}/papers/#{paper_code(paper_meta)}")
     raise "Directory already exists for #{paper_code(paper_meta)}, exiting" 
 end
 
-`cp -R paper-template #{prepo_root}/papers/#{paper_code(paper_meta)}`
+`cp -R #{prepo_root}/paper-template #{prepo_root}/papers/#{paper_code(paper_meta)}`
 
 # overwrite the bib with the generated bib
 File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.bib", 'w') { |file| file.write(gen_bibtex) }
+
+# second one so that concise bibs can be generated when needed
+File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/this.bib", 'w') { |file| file.write(gen_bibtex) }
 
 `sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
 `sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
 
 `cp #{filename} #{prepo_root}/papers/#{paper_code(paper_meta)}/original.pdf`
 `mv meta #{prepo_root}/papers/#{paper_code(paper_meta)}/meta`
+
+puts "Generated #{prepo_root}/papers/#{paper_code(paper_meta)} successfully"

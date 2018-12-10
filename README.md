@@ -70,8 +70,8 @@ run `prepo_bib_gen.rb`. All `citet` and `cite` references in p.tex with codes ma
 the folder names in the parent directory will be parsed and the output will form a 
 bib file containing only the entries you reference.
 
-This is intended to overwrite `p.bib` in the current directory, but I don't want to
-be destructive here. Do so with care.
+This is intended to overwrite `p.bib` in the current directory, but I don't want the 
+default behaviour to be destructive. Do so with care.
 
 Note that this only supports entries you have stored in prepo and ignores anything else.
 For physical assets that do not have a digital PDF resource, form a `this.bib` file

@@ -52,6 +52,7 @@ The generated bibtex in `this.bib` now looks like:
   year = {2018}
 }
 ```
+Now change directory into this new folder, type some notes about the paper in the pre-filled `p.tex` file and run `make` to generate a "scratchpad" file for your reference later.
 
 ## Searching Existing Papers
 

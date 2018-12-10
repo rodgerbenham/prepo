@@ -21,7 +21,7 @@ export PATH="$PREPO_ROOT/bin:$PATH"
 
 # Usage
 
-## New Papers
+## Adding Existing Papers To The Repo
 
 Below is a walk-through for adding a new paper to the repository.
 

@@ -11,6 +11,14 @@ STRINGS_SHORT_FILE = "#{prepo_root}/strings-shrt.bib"
 
 # Usage: prepo.rb <pdffile>
 
+def replace_text(file_name, old, new)
+	text = File.read(file_name)
+	new_contents = text.gsub(/#{old}/, new)
+
+	# To write changes to the file, use:
+	File.open(file_name, "w") {|file| file.puts new_contents }
+end
+
 def paper_code(paper_meta)
     year_short = paper_meta.year.split(//).last(2).join
     "#{paper_meta.author_short}#{year_short}-#{paper_meta.venue}"
@@ -257,8 +265,8 @@ if filename != "draft"
     # second one so that concise bibs can be generated when needed
     File.open("#{prepo_root}/papers/#{paper_code(paper_meta)}/this.bib", 'w') { |file| file.write(gen_bibtex) }
 
-    `sed -i 's/foo-bar-article-title/#{paper_meta.title}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
-    `sed -i 's/foo-bar-pcode/#{paper_code(paper_meta)}/g' #{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex`
+	replace_text("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex", "foo-bar-article-title", paper_meta.title)
+	replace_text("#{prepo_root}/papers/#{paper_code(paper_meta)}/p.tex", "foo-bar-pcode", paper_code(paper_meta))
 
     `cp #{filename} #{prepo_root}/papers/#{paper_code(paper_meta)}/original.pdf`
     `mv meta #{prepo_root}/papers/#{paper_code(paper_meta)}/meta`
